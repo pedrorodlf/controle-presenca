@@ -68,7 +68,7 @@ class GoogleDriveDownloader:
                 downloader = MediaIoBaseDownload(fh, request)
                 done = False
                 while not done:
-                    status, done = downloader.next_chunk()
+                    _, done = downloader.next_chunk()
             logger.info(f"✅ Download da planilha '{file_name}' concluído com sucesso em: {output_path}")
             return True
         except Exception:
