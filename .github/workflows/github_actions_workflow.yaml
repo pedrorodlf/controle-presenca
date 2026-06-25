@@ -20,7 +20,7 @@ jobs:
         env:
             DATABASE_URL: "sqlite:///:memory:"
         run: |
-          pytest tests/ --cov=src --cov-report=xml
+          pytest tests/ --cov=. --cov-report=xml
           
       - name: SonarCloud Scan #nome da task nome da API
         uses: sonarsource/sonarqube-scan-action@v4
@@ -28,11 +28,11 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-        # precisamos pegar a ssinatura da sua conta
+        # precisamos pegar a assinatura da sua conta
         #nome do repositorio
           args: >
-              -Dsonar.organization=larissa-dma
-              -Dsonar.projectKey=controle-presenca
+              -Dsonar.organization=pedrorodlf
+              -Dsonar.projectKey=pedrorodlf_controle-presenca
               -Dsonar.python.coverage.reportPaths=coverage.xml
               -Dsonar.python.version=3.10
               -Dsonar.sources=src
