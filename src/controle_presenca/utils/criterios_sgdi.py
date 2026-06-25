@@ -3,6 +3,8 @@
 from typing import Dict, Tuple
 
 
+NAO_TRABALHO = "Não trabalho"
+
 # Dicionário mapeando as "chaves" das questões (para facilitar a API) 
 # e as alternativas com suas respectivas pontuações.
 CRITERIOS_PONTUACAO = {
@@ -168,7 +170,7 @@ CRITERIOS_PONTUACAO = {
         "Trabalho informal em casa (costura, aulas particulares, artesanato)": 3.0,
         "Trabalho doméstico em casa de outras pessoas": 4.0,
         "Trabalho fora de casa como microempresário(a) ou empreendedor(a) individual": 1.0,
-        "Não trabalho": 1.0,
+        NAO_TRABALHO: 1.0,
         "Recebo pensão ou aposentadoria do INSS": 1.0,
         "Outro": 1.0
     },
@@ -186,10 +188,10 @@ CRITERIOS_PONTUACAO = {
         "Custear meus estudos ou de alguém próximo": 2.0,
         "Dívidas, empréstimos": 2.0,
         "Outro": 1.0,
-        "Não trabalho": 1.0
+        NAO_TRABALHO: 1.0
     },
     "q25_jornada_trabalho": {
-        "Não trabalho": 1.0,
+        NAO_TRABALHO: 1.0,
         "Sem jornada fixa, até 10 horas semanais": 2.0,
         "De 11 a 20 horas semanais": 2.0,
         "De 21 a 30 horas semanais": 3.0,
@@ -236,8 +238,6 @@ def calcular_pontuacao(respostas_candidato: Dict[str, str]) -> Tuple[float, list
                     "resposta": alternativa_limpa,
                     "pontos": pontos
                 })
-            else:
-                # Opcional: tratar alternativa não encontrada (log, ignorar ou levantar erro)
-                pass
+
                 
     return pontuacao_total, registros_processados

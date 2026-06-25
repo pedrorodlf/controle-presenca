@@ -1,4 +1,5 @@
 import os
+import tempfile
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -69,9 +70,15 @@ class EmailService:
         draw.rectangle([450, 120, 560, 270], outline=preto, width=2)
         draw.text((485, 190), "FOTO", fill=preto, font=fonte_padrao)
 
-        # Salva a imagem temporariamente na pasta /tmp do Linux/Docker
-        caminho_arquivo = f"/tmp/cartao_{cartao_id}.jpg"
-        img.save(caminho_arquivo, quality=95)
+        # Salva a imagem temporariamente em um arquivo temporário seguro
+        fd, caminho_arquivo = tempfile.mkstemp(suffix=".jpg", prefix=f"cartao_{cartao_id}_")
+        try:
+            os.close(fd)
+            img.save(caminho_arquivo, quality=95)
+        except Exception:
+            if os.path.exists(caminho_arquivo):
+                os.remove(caminho_arquivo)
+            raise
 
         return caminho_arquivo
 

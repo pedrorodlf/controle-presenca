@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpliCAASO | Portal Unificado</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 900px; padding-top: 40px;">
+        
+        <header class="header" style="border-bottom: none; text-align: center; justify-content: center; flex-direction: column; margin-bottom: 50px;">
+            <div class="logo">
+                <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -1px;">📚 ExpliCAASO</h1>
+                <p style="font-size: 1.2rem; margin-top: 10px;">Sistema Unificado de Presença e Gestão de Alunos</p>
+            </div>
+        </header>
+
+        <div class="landing-grid">
+            <!-- Card Terminal do Leitor -->
+            <a href="/static/leitor.html" class="card portal-card">
+                <div class="icon-wrapper">📍</div>
+                <h3>Terminal de Presença</h3>
+                <p>Modo Kiosk para registro de frequência dos alunos por meio de leitor de código de barras ou RFID.</p>
+                <div class="card-footer">
+                    Acessar Terminal <span>→</span>
+                </div>
+            </a>
+
+            <!-- Card Painel do Gestor -->
+            <a href="/static/gestor.html" class="card portal-card">
+                <div class="icon-wrapper">📊</div>
+                <h3>Painel do Gestor</h3>
+                <p>Controle do processo seletivo (SGDI), geração de relatórios de frequência e gestão de alunos matriculados.</p>
+                <div class="card-footer">
+                    Acessar Painel <span>→</span>
+                </div>
+            </a>
+            
+            <!-- Card Documentação Swagger -->
+            <a href="/docs" class="card portal-card" style="grid-column: 1 / -1; min-height: auto;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="font-size: 1.8rem;">⚙️</div>
+                    <div style="flex-grow: 1;">
+                        <h3 style="font-size: 1.15rem; margin-bottom: 2px;">Documentação da API (Swagger)</h3>
+                        <p style="font-size: 0.85rem;">Explorar e testar endpoints diretamente via documentação interativa.</p>
+                    </div>
+                    <div class="card-footer" style="margin-top: 0;">
+                        Abrir Docs <span>→</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <footer style="margin-top: 60px; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+            <p>ExpliCAASO Cursinho • Desenvolvido com FastAPI & Docker</p>
+        </footer>
+    </div>
+</body>
+</html>

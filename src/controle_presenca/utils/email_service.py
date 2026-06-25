@@ -44,8 +44,8 @@ class EmailService:
                 server.sendmail(settings.SMTP_USER, [destinatario], msg.as_string())
             logger.info(f"Email enviado com sucesso para {destinatario}.")
             return True
-        except Exception as e:
-            logger.error(f"Erro ao enviar email para {destinatario}: {e}")
+        except Exception:
+            logger.exception("Erro ao enviar email para %s", destinatario)
             return False
 
     @classmethod

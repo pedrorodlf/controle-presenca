@@ -28,7 +28,7 @@ class GoogleDriveDownloader:
             )
             return build('drive', 'v3', credentials=credentials)
         except Exception as e:
-            logger.error(f"Erro ao autenticar com a API do Google Drive: {e}")
+            logger.exception("Erro ao autenticar com a API do Google Drive")
             raise RuntimeError(f"Erro de autenticação do Google Drive: {e}")
 
     @classmethod
@@ -71,6 +71,6 @@ class GoogleDriveDownloader:
                     status, done = downloader.next_chunk()
             logger.info(f"✅ Download da planilha '{file_name}' concluído com sucesso em: {output_path}")
             return True
-        except Exception as e:
-            logger.error(f"Erro durante o download do arquivo do Google Drive: {e}")
-            raise e
+        except Exception:
+            logger.exception("Erro durante o download do arquivo do Google Drive")
+            raise

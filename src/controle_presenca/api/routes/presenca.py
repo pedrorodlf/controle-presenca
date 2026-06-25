@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Annotated
 
 # Ajustando os imports
 import sys
@@ -28,8 +28,8 @@ class PresencaResponse(BaseModel):
     mensagem: str
     tipo: Optional[str] = None
 
-@router.post("/registrar", response_model=PresencaResponse)
-def registrar_presenca(leitura: LeituraCartao, db: Session = Depends(get_db)):
+@router.post("/registrar", response_model=PresencaResponse, responses={400: {"description": "Erro de validação ou registro de presença"}})
+def registrar_presenca(leitura: LeituraCartao, db: Annotated[Session, Depends(get_db)]):
     service = PresencaService(db)
     sucesso, mensagem = service.processar_leitura(leitura.cartao_id)
     
@@ -39,7 +39,12 @@ def registrar_presenca(leitura: LeituraCartao, db: Session = Depends(get_db)):
             detail=mensagem
         )
     
-    tipo = "entrada" if "ENTRADA" in mensagem else "saida" if "SAÍDA" in mensagem else None
+    if "ENTRADA" in mensagem:
+        tipo = "entrada"
+    elif "SAÍDA" in mensagem:
+        tipo = "saida"
+    else:
+        tipo = None
     
     return PresencaResponse(
         sucesso=sucesso,

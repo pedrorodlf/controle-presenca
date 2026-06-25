@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Annotated
 
 # Ajustando os imports
 import sys
@@ -25,8 +26,8 @@ class SessaoResponse(BaseModel):
     inicio: datetime
     status: str
 
-@router.get("/ativa", response_model=SessaoResponse)
-def get_sessao_ativa(db: Session = Depends(get_db)):
+@router.get("/ativa", response_model=SessaoResponse, responses={404: {"description": "Nenhuma sessão ativa"}})
+def get_sessao_ativa(db: Annotated[Session, Depends(get_db)]):
     repo = RepositoriosPresenca(db)
     sessao = repo.obter_sessao_ativa()
     
@@ -39,8 +40,8 @@ def get_sessao_ativa(db: Session = Depends(get_db)):
         status=sessao.status
     )
 
-@router.post("/iniciar", response_model=SessaoResponse)
-def iniciar_sessao(db: Session = Depends(get_db)):
+@router.post("/iniciar", response_model=SessaoResponse, responses={400: {"description": "Sessão já ativa"}})
+def iniciar_sessao(db: Annotated[Session, Depends(get_db)]):
     repo = RepositoriosPresenca(db)
     
     sessao_ativa = repo.obter_sessao_ativa()
@@ -58,8 +59,8 @@ def iniciar_sessao(db: Session = Depends(get_db)):
         status=nova_sessao.status
     )
 
-@router.post("/encerrar")
-def encerrar_sessao(db: Session = Depends(get_db)):
+@router.post("/encerrar", responses={404: {"description": "Nenhuma sessão ativa"}})
+def encerrar_sessao(db: Annotated[Session, Depends(get_db)]):
     repo = RepositoriosPresenca(db)
     
     sessao_ativa = repo.obter_sessao_ativa()

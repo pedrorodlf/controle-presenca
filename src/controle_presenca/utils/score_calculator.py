@@ -5,6 +5,39 @@ from typing import Dict, Any
 class ScoreCalculator:
     _criterios = None
 
+    @staticmethod
+    def _converter_questao_id(q_val: Any) -> Any:
+        try:
+            return int(q_val)
+        except ValueError:
+            return q_val
+
+    @staticmethod
+    def _converter_pontos(pts_val: Any) -> float:
+        try:
+            return float(pts_val) if pts_val is not None else 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    @classmethod
+    def _extrair_dados_planilha(cls, sheet) -> Dict[Any, Dict[str, float]]:
+        criterios = {}
+        current_q = None
+        for row in range(3, sheet.max_row + 1):
+            q_val = sheet.cell(row=row, column=1).value
+            if q_val is not None:
+                current_q = cls._converter_questao_id(q_val)
+                criterios[current_q] = {}
+
+            alt_val = sheet.cell(row=row, column=2).value
+            pts_val = sheet.cell(row=row, column=3).value
+
+            if current_q is not None and alt_val is not None:
+                alt_clean = str(alt_val).strip()
+                pts = cls._converter_pontos(pts_val)
+                criterios[current_q][alt_clean] = pts
+        return criterios
+
     @classmethod
     def _carregar_criterios(cls) -> Dict[int, Dict[str, float]]:
         if cls._criterios is not None:
@@ -19,34 +52,26 @@ class ScoreCalculator:
             return {}
 
         wb = openpyxl.load_workbook(caminho_xlsx, data_only=True)
-        sheet = wb.active
-
-        cls._criterios = {}
-        current_q = None
-
-        # Lê a partir da linha 3
-        for row in range(3, sheet.max_row + 1):
-            q_val = sheet.cell(row=row, column=1).value
-            if q_val is not None:
-                try:
-                    current_q = int(q_val)
-                except ValueError:
-                    current_q = q_val
-                cls._criterios[current_q] = {}
-
-            alt_val = sheet.cell(row=row, column=2).value
-            pts_val = sheet.cell(row=row, column=3).value
-
-            if current_q is not None and alt_val is not None:
-                alt_clean = str(alt_val).strip()
-                try:
-                    pts = float(pts_val) if pts_val is not None else 0.0
-                except (ValueError, TypeError):
-                    pts = 0.0
-                cls._criterios[current_q][alt_clean] = pts
-
-        wb.close()
+        try:
+            sheet = wb.active
+            cls._criterios = cls._extrair_dados_planilha(sheet)
+        finally:
+            wb.close()
+            
         return cls._criterios
+
+    @staticmethod
+    def _obter_pontuacao_resposta(criterios_questao: Dict[str, float], resposta: str) -> float:
+        resp_clean = str(resposta).strip() if resposta is not None else ""
+        if resp_clean in criterios_questao:
+            return criterios_questao[resp_clean]
+        
+        # Match case-insensitive e strip-tolerant como fallback
+        for key, val in criterios_questao.items():
+            if key.lower() == resp_clean.lower():
+                return val
+        
+        return 0.0
 
     @classmethod
     def calcular_score(cls, respostas: Dict[int, str]) -> float:
@@ -59,20 +84,6 @@ class ScoreCalculator:
 
         for q_num, resposta in respostas.items():
             if q_num in criterios:
-                resp_clean = str(resposta).strip() if resposta is not None else ""
-                # Tenta match exato ou parcial para tolerar pequenas diferenças de formatação
-                if resp_clean in criterios[q_num]:
-                    score_total += criterios[q_num][resp_clean]
-                else:
-                    # Match case-insensitive e strip-tolerant como fallback
-                    matched = False
-                    for key, val in criterios[q_num].items():
-                        if key.lower() == resp_clean.lower():
-                            score_total += val
-                            matched = True
-                            break
-                    # Se não deu match, 0 pontos para esta questão
-                    if not matched:
-                        pass
+                score_total += cls._obter_pontuacao_resposta(criterios[q_num], resposta)
 
         return score_total

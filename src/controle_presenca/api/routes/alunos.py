@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Annotated
 
 from src.controle_presenca.database.connection import SessionLocal
 from src.controle_presenca.database.models import Aluno
@@ -28,10 +28,10 @@ class AlunoResponse(BaseModel):
 
 @router.get("/", response_model=List[AlunoResponse])
 def listar_alunos(
+    db: Annotated[Session, Depends(get_db)],
     skip: int = 0,
     limit: int = 100,
-    status: Optional[str] = None,
-    db: Session = Depends(get_db)
+    status: Optional[str] = None
 ):
     """Lista todos os alunos com paginação"""
     query = db.query(Aluno)
@@ -50,8 +50,8 @@ def listar_alunos(
         for a in alunos
     ]
 
-@router.get("/{aluno_id}", response_model=AlunoResponse)
-def get_aluno(aluno_id: int, db: Session = Depends(get_db)):
+@router.get("/{aluno_id}", response_model=AlunoResponse, responses={404: {"description": "Aluno não encontrado"}})
+def get_aluno(aluno_id: int, db: Annotated[Session, Depends(get_db)]):
     """Retorna um aluno específico"""
     aluno = db.query(Aluno).filter(Aluno.id == aluno_id).first()
     
@@ -65,8 +65,8 @@ def get_aluno(aluno_id: int, db: Session = Depends(get_db)):
         status=aluno.status
     )
 
-@router.post("/", response_model=AlunoResponse, status_code=status.HTTP_201_CREATED)
-def criar_aluno(aluno: AlunoCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=AlunoResponse, status_code=status.HTTP_201_CREATED, responses={400: {"description": "Cartão já cadastrado"}})
+def criar_aluno(aluno: AlunoCreate, db: Annotated[Session, Depends(get_db)]):
     """Cadastra um novo aluno"""
     # Verifica se cartão já existe
     existente = db.query(Aluno).filter(Aluno.cartao_id == aluno.cartao_id).first()
@@ -92,8 +92,8 @@ def criar_aluno(aluno: AlunoCreate, db: Session = Depends(get_db)):
         status=novo_aluno.status
     )
     
-@router.delete("/{aluno_id}", status_code=status.HTTP_200_OK)
-def desativar_aluno(aluno_id: int, db: Session = Depends(get_db)):
+@router.delete("/{aluno_id}", status_code=status.HTTP_200_OK, responses={404: {"description": "Aluno não encontrado"}, 400: {"description": "Aluno já desativado"}})
+def desativar_aluno(aluno_id: int, db: Annotated[Session, Depends(get_db)]):
     """Desativa um aluno (exclusão lógica) para que ele pare de contabilizar presenças e faltas."""
     
     # Importe o modelo Aluno lá no topo do arquivo se ele já não estiver importado
@@ -110,4 +110,4 @@ def desativar_aluno(aluno_id: int, db: Session = Depends(get_db)):
     aluno.status = "DESATIVADO"
     db.commit()
     
-    return {"mensagem": f"Aluno desativado com sucesso!"}
+    return {"mensagem": "Aluno desativado com sucesso!"}

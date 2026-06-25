@@ -143,3 +143,145 @@ class TestPresencaService:
         
         assert sucesso is False
         assert "inativo" in mensagem.lower()
+
+    def test_iniciar_sessao_sucesso(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        service.repo.obter_sessao_ativa.return_value = None
+        
+        sucesso, msg = service.iniciar_sessao()
+        assert sucesso is True
+        assert "iniciada" in msg
+        service.repo.criar_sessao.assert_called_once()
+
+    def test_iniciar_sessao_ja_ativa(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        service.repo.obter_sessao_ativa.return_value = MagicMock()
+        
+        sucesso, msg = service.iniciar_sessao()
+        assert sucesso is False
+        assert "já ativa" in msg
+
+    def test_encerrar_sessao_sem_sessao(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        service.repo.obter_sessao_ativa.return_value = None
+        
+        sucesso, msg = service.encerrar_sessao()
+        assert sucesso is False
+        assert "Nenhuma sessão ativa" in msg
+
+    def test_encerrar_sessao_sucesso(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        
+        sessao_mock = MagicMock()
+        sessao_mock.id = 1
+        sessao_mock.inicio = datetime(2026, 1, 1, 10, 0, 0)
+        sessao_mock.fim = datetime(2026, 1, 1, 12, 0, 0)
+        service.repo.obter_sessao_ativa.return_value = sessao_mock
+        
+        # mock obter_intervalos_sessao
+        service.repo.obter_intervalos_sessao.return_value = []
+        
+        # mock obter_alunos_ativos
+        aluno_mock = MagicMock()
+        aluno_mock.id = 1
+        aluno_mock.carga_horaria_total = 10.0
+        aluno_mock.percentual_presenca = 80.0
+        service.repo.obter_alunos_ativos.return_value = [aluno_mock]
+        
+        # mock registros for calcular_tempo_presente_aluno
+        reg_entrada = MagicMock()
+        reg_entrada.tipo = 'entrada'
+        reg_entrada.timestamp = datetime(2026, 1, 1, 10, 5, 0)
+        reg_saida = MagicMock()
+        reg_saida.tipo = 'saida'
+        reg_saida.timestamp = datetime(2026, 1, 1, 11, 5, 0)
+        mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [reg_entrada, reg_saida]
+        
+        sucesso, msg = service.encerrar_sessao()
+        assert sucesso is True
+        assert "encerrada" in msg
+        assert aluno_mock.carga_horaria_total > 10.0
+
+    def test_iniciar_intervalo_sucesso(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        sessao_mock = MagicMock()
+        sessao_mock.id = 1
+        service.repo.obter_sessao_ativa.return_value = sessao_mock
+        service.repo.obter_intervalo_ativo.return_value = None
+        
+        sucesso, msg = service.iniciar_intervalo()
+        assert sucesso is True
+        service.repo.iniciar_intervalo.assert_called_once_with(1)
+
+    def test_iniciar_intervalo_sem_sessao(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        service.repo.obter_sessao_ativa.return_value = None
+        
+        sucesso, msg = service.iniciar_intervalo()
+        assert sucesso is False
+
+    def test_iniciar_intervalo_ja_ativo(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        sessao_mock = MagicMock()
+        sessao_mock.id = 1
+        service.repo.obter_sessao_ativa.return_value = sessao_mock
+        service.repo.obter_intervalo_ativo.return_value = MagicMock()
+        
+        sucesso, msg = service.iniciar_intervalo()
+        assert sucesso is False
+
+    def test_encerrar_intervalo_sucesso(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        sessao_mock = MagicMock()
+        sessao_mock.id = 1
+        service.repo.obter_sessao_ativa.return_value = sessao_mock
+        service.repo.obter_intervalo_ativo.return_value = MagicMock()
+        
+        sucesso, msg = service.encerrar_intervalo()
+        assert sucesso is True
+        service.repo.encerrar_intervalo.assert_called_once_with(1)
+
+    def test_encerrar_intervalo_sem_sessao(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        service.repo.obter_sessao_ativa.return_value = None
+        
+        sucesso, msg = service.encerrar_intervalo()
+        assert sucesso is False
+
+    def test_encerrar_intervalo_sem_intervalo_ativo(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        service.repo = MagicMock()
+        sessao_mock = MagicMock()
+        sessao_mock.id = 1
+        service.repo.obter_sessao_ativa.return_value = sessao_mock
+        service.repo.obter_intervalo_ativo.return_value = None
+        
+        sucesso, msg = service.encerrar_intervalo()
+        assert sucesso is False
+
+    def test_diferenca_efetiva_com_timezone(self):
+        mock_db = MagicMock()
+        service = PresencaService(mock_db)
+        t1 = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        t2 = datetime(2026, 1, 1, 11, 0, 0, tzinfo=timezone.utc)
+        res = service.diferenca_efetiva(t1, t2, [])
+        assert res == 3600
