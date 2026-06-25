@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    container_name: explicaaso_db
+    restart: always
+    env_file:
+      - ../.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: explicaaso_app
+    restart: always # <- A BLINDAGEM CONTRA QUEDAS E FECHAMENTO DE TERMINAL
+    depends_on:
+      - db
+    env_file:
+      - ../.env
+    volumes:
+      - ../:/app
+    ports:
+      - "8000:8000"
+    # A SOLUÇÃO ESTÁ AQUI: Ignora a trava de usuário apenas no ambiente local
+    user: "root"
+    # Comando de desenvolvimento (sobrescreve o CMD do Dockerfile adicionando o --reload)
+    command: uvicorn src.controle_presenca.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: explicaaso_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@explicaaso.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5051:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

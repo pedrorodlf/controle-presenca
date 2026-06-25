@@ -1,0 +1,16 @@
+# 🛑 IGNORAR ARQUIVOS DE DADOS E BACKUPS (MUITO IMPORTANTE)
+backups/
+logs/
+docker/postgres_data/
+
+# 🛑 IGNORAR SENHAS E CREDENCIAIS
+.env
+credentials/
+credentials.json
+# 🐍 IGNORAR ARQUIVOS INÚTEIS DO PYTHON
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
