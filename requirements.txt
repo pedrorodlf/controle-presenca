@@ -14,3 +14,4 @@ gspread
 httpx==0.27.2
 google-api-python-client
 google-auth
+Pillow

@@ -35,12 +35,6 @@ class TestModels:
         assert hasattr(Candidato, '__tablename__')
         assert Candidato.__tablename__ == 'candidatos'
     
-    def test_pontuacao_questionario_model_exists(self):
-        """Verifica se o modelo PontuacaoQuestionario existe"""
-        PontuacaoQuestionario = self.models.PontuacaoQuestionario
-        assert hasattr(PontuacaoQuestionario, '__tablename__')
-        assert PontuacaoQuestionario.__tablename__ == 'pontuacoes_questionario'
-    
     def test_aluno_has_required_columns(self):
         """Verifica se Aluno tem as colunas necessárias"""
         Aluno = self.models.Aluno

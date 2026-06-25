@@ -44,6 +44,7 @@ def test_sgdi_service_aprovar_corte():
     from controle_presenca.services.sgdi_service import SGDiService
     
     mock_db = MagicMock()
+    mock_db.query.return_value.filter.return_value.count.return_value = 10
     service = SGDiService(mock_db)
     
     # Mock do método gerar_ranking
